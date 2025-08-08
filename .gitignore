@@ -1,0 +1,10 @@
+.idea
+.env
+bin
+/vendor
+/var
+.DS_Store
+.git/*
+dev/nats.jwt
+nats
+nats_data

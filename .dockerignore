@@ -1,0 +1,9 @@
+# *.yml
+.gitlab/golang.yml
+.gitlab/helm.yml
+.gitlab-ci.yml
+docker-compose.yml
+.DS_Store
+.env
+helm
+README.md

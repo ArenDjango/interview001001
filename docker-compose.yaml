@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  database:
+    container_name: database
+    platform: linux/amd64
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: onboarding_service
+    healthcheck:
+      test: pg_isready -d postgres
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    image: postgres
+    networks:
+      - onboarding-network
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "${JAEGER_UI_LOCAL_PORT:-16686}:16686"
+      - "${JAEGER_THRIFT_COLLECTOR_LOCAL_PORT:-14268}:14268"
+      - "4317:4317" # OTLP/gRPC
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_GRPC_PORT=4317
+      - LOG_LEVEL=debug
+
+volumes:
+  minio-data:
+  redis_data:
+  postgres_data:
+
+networks:
+  onboarding-network:
+    driver: bridge
