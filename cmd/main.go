@@ -20,7 +20,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/uptrace/bun/migrate"
 	"github.com/urfave/cli/v2"
-	"gitlab.b2broker.tech/pbsr/pbsr/backend/go/libs/connection-pool/pool"
 )
 
 type appServicesAndDependencies struct {
@@ -129,12 +128,6 @@ func startAppAndServices(ctx context.Context, env string) (
 	if err != nil {
 		cancel()
 		return nil, fmt.Errorf("failed to start app: %w", err)
-	}
-
-	_, err = pool.NewConfig()
-	if err != nil {
-		cancel()
-		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	gracefulShutdown := func() {

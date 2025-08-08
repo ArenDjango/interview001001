@@ -14,13 +14,10 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/rs/zerolog/log"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	bundebug "github.com/uptrace/bun/extra/bundebug"
-	"github.com/uptrace/bun/extra/bunotel"
 	"github.com/urfave/cli/v2"
-	"gitlab.b2broker.tech/pbsr/pbsr/backend/go/libs/nats"
 )
 
 type appCtxKey struct{}
@@ -47,9 +44,6 @@ type App struct {
 	// lazy init
 	dbOnce sync.Once
 	db     *bun.DB
-
-	natsOnce sync.Once
-	nats     *nats.Connection
 }
 
 func New(ctx context.Context, cfg *Config) *App {
@@ -112,28 +106,6 @@ func (app *App) IsDebug() bool {
 	return app.cfg.Debug
 }
 
-func (app *App) GetNatsConnection() *nats.Connection {
-	log.Info().Msg("Getting nats connection")
-	app.natsOnce.Do(func() {
-		log.Info().Msgf("creating connection... host: %s, port: %d, JwtFilePath: %s",
-			app.cfg.Nats.Host, app.cfg.Nats.Port, app.cfg.Nats.JwtCredentialFilePath)
-		natsConfig := &nats.Config{
-			Host:        app.cfg.Nats.Host,
-			Port:        app.cfg.Nats.Port,
-			JwtFilePath: app.cfg.Nats.JwtCredentialFilePath,
-		}
-
-		natsConnection, err := nats.NewNatsConnection(natsConfig)
-		if err != nil {
-			log.Panic().Err(err).Msgf("Failed to init NATS connection, original error: %s", err)
-		}
-
-		app.nats = natsConnection
-	})
-
-	return app.nats
-}
-
 func (app *App) DB() *bun.DB {
 	app.dbOnce.Do(func() {
 		postgresURL := &url.URL{
@@ -157,8 +129,6 @@ func (app *App) DB() *bun.DB {
 		}
 
 		db := bun.NewDB(sqldb, pgdialect.New())
-		db.AddQueryHook(bunotel.NewQueryHook(bunotel.WithDBName(app.cfg.DB.Database)))
-
 		if app.cfg.Debug {
 			db.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
 		}

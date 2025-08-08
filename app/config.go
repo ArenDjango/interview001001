@@ -3,13 +3,11 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
 
 	"github.com/joho/godotenv"
-	otellib "gitlab.b2broker.tech/pbsr/pbsr/backend/go/libs/otel"
 )
 
 type PathToEnv struct{}
@@ -39,7 +37,6 @@ type Config struct {
 		Port                  int
 		JwtCredentialFilePath string
 	}
-	Trace    otellib.TraceConfig
 	MockGRPC string
 }
 
@@ -62,11 +59,6 @@ func LoadConfig(ctx context.Context) *Config {
 	debug, _ := strconv.ParseBool(getEnv("DEBUG", "false"))
 	batchSize, _ := strconv.Atoi(getEnv("DB_BATCH_SIZE", "100"))
 
-	natsPort, err := strconv.Atoi(getEnv("NATS_PORT", "4222"))
-	if err != nil {
-		fmt.Println("Error converting  nats port to int type:", err)
-	}
-
 	return &Config{
 		Env:   getEnv("APP_ENV", "dev"),
 		Debug: debug,
@@ -86,38 +78,6 @@ func LoadConfig(ctx context.Context) *Config {
 			Database:  getEnv("DB_DATABASE", ""),
 			BatchSize: batchSize,
 		},
-		ExternalServices: struct {
-			Avanpost struct {
-				Host                string
-				Port                string
-				OnboardingGroupUuid string
-			}
-		}{
-			Avanpost: struct {
-				Host                string
-				Port                string
-				OnboardingGroupUuid string
-			}{
-				Host:                getEnv("AVANPOST_SERVICE_HOST", ""),
-				Port:                getEnv("AVANPOST_SERVICE_PORT", ""),
-				OnboardingGroupUuid: getEnv("AVANPOST_ONBOARDING_GROUP_UUID", ""),
-			},
-		},
-		Nats: struct {
-			Host                  string
-			Port                  int
-			JwtCredentialFilePath string
-		}{
-			Host:                  getEnv("NATS_HOST", ""),
-			Port:                  natsPort,
-			JwtCredentialFilePath: getEnv("NATS_JWT_CREDENTIAL_FILE_PATH", ""),
-		},
-		Trace: otellib.TraceConfig{
-			EnableTracing:     getEnv("ENABLE_TRACING", "false") == "true",
-			CollectorEndpoint: getEnv("TRACE_COLLECTOR_ENDPOINT", ""),
-			AppName:           getEnv("APP_NAME", ""),
-		},
-		MockGRPC: getEnv("MOCK_GRPC", "false"),
 	}
 }
 
