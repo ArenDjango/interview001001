@@ -2,9 +2,12 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"online-registration/internal/interview/domain/dto"
 	"online-registration/internal/interview/domain/entity"
 	"online-registration/internal/interview/domain/repository"
+
+	"github.com/rs/zerolog/log"
 )
 
 type CreateEventUseCase struct {
@@ -27,7 +30,8 @@ func (uc *CreateEventUseCase) CreateEvent(
 		ctx, requestDTO.Title, requestDTO.Description, requestDTO.StartTime, requestDTO.EndTime,
 	)
 	if err != nil {
-		return nil, err
+		log.Error().Msgf("CreateEventUseCase.CreateEvent: %v", err)
+		return nil, fmt.Errorf("create event: %w", err)
 	}
 	return event, err
 }
